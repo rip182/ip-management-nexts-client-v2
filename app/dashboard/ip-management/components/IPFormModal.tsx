@@ -1,5 +1,5 @@
 import { useState, useEffect, FormEvent } from "react"
-import {IPAddress,User} from "@/types/types"
+import {IPAddress,User,IPAddressPostPayload} from "@/types/types"
 // type IPAddress = {
 //   id: string
 //   address: string
@@ -20,18 +20,19 @@ type IPFormModalProps = {
   onClose: () => void
   onSave: (ip: IPAddress) => void
   ip: IPAddress | null
-  user: User | null
+  user?: User | null
+  isSubmitting:boolean
 }
 
-export function IPFormModal({ isOpen, onClose, onSave, ip, user }: IPFormModalProps) {
-  const [formData, setFormData] = useState({ address: "", label: "", comment: "" })
+export function IPFormModal({ isOpen, onClose, onSave, ip, isSubmitting }: IPFormModalProps) {
+  const [formData, setFormData] = useState({id:"", address: "", label: "", comment: "" })
   const [formErrors, setFormErrors] = useState({ address: "", label: "" })
 
   useEffect(() => {
     if (ip) {
-      setFormData({ address: ip.ip_address, label: ip.label, comment: ip.comment || "" })
+      setFormData({id:ip.id, address: ip.ip_address, label: ip.label, comment: ip.comment || "" })
     } else {
-      setFormData({ address: "", label: "", comment: "" })
+      setFormData({id:"", address: "", label: "", comment: "" })
     }
     setFormErrors({ address: "", label: "" })
   }, [ip])
@@ -65,13 +66,10 @@ export function IPFormModal({ isOpen, onClose, onSave, ip, user }: IPFormModalPr
     }
 
     const newIP: IPAddress = {
-      id: ip ? ip.id : Date.now().toString(),
-      address: formData.address,
+      id:formData.id,
+      ip_address: formData.address,
       label: formData.label,
       comment: formData.comment,
-      createdBy: ip ? ip.createdBy : user?.email || "unknown",
-      createdAt: ip ? ip.createdAt : new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     }
     onSave(newIP)
   }
@@ -150,9 +148,12 @@ export function IPFormModal({ isOpen, onClose, onSave, ip, user }: IPFormModalPr
             <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
               <button
                 type="submit"
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
-              >
-                {ip ? "Update" : "Add"}
+                disabled={isSubmitting}
+                className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 
+                  text-base font-medium text-white sm:ml-3 sm:w-auto sm:text-sm
+                  ${isSubmitting ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 focus:ring-blue-500"}`}
+              >                
+               {isSubmitting ? "Saving..." : ip ? "Update" : "Add"}
               </button>
               <button
                 type="button"

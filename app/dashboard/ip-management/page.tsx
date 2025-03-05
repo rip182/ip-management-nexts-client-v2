@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { Plus } from "lucide-react"
-import { SearchBar } from "./SearhBar"
-import IPTable  from "./IPTable"
-import { IPFormModal } from "./IPFormModal"
-import { DeleteConfirmationModal } from "./DeleteConfirmationModal"
-import IPFilter from "./IpFilter"
+import { SearchBar } from "./components/SearhBar"
+import IPTable  from "./components/IPTable"
+import { IPFormModal } from "./components/IPFormModal"
+import { DeleteConfirmationModal } from "./components/DeleteConfirmationModal"
+import IPFilter from "./components/IPFilter"
 import useSWR from "swr"
 import api from "@/lib/axios"
-import type { IPAddress, User } from '@/types/types'
+import type { IPAddress, User,IPAddressPostPayload,IPAddressPutPayload } from '@/types/types'
 
 // Type definitions (unchanged from original)
 // type IPAddress = {
@@ -40,12 +40,16 @@ export default function IPManagement() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [currentIP, setCurrentIP] = useState<IPAddress | null>(null)
+  const [currentIP, setCurrentIP] = useState< IPAddress| null>(null)
   const [user, setUser] = useState<User | null>(null)
-  // const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(true)
 
-  const { data, error, isLoading } = useSWR('api/internet-protocol-address', IpFetcher)
+  const { data, error, isLoading,mutate } = useSWR('api/internet-protocol-address', IpFetcher)
   
+  const IPAddressUrl = '/api/internet-protocol-address'
+  // useEffect(()=>{
+  //   console.log(currentIP)
+  // },[currentIP])
   // useEffect(() => {
   //   setIpAddresses(mockIPs)
   //   setFilteredIPs(mockIPs)
@@ -70,8 +74,27 @@ export default function IPManagement() {
   //   }
   // }, [searchTerm, data])
 
-  const handleOpenModal = (ip?: IPAddress) => {
-    setCurrentIP(ip || null)
+  const handleSubmit = async <T, R = unknown>({ endpoint, method, data, params=null }: RequestOptions<T>): Promise<R | void> => {
+
+    try {
+      const response = await api.request<R>({
+        url: endpoint,
+        method,
+        data,
+        params,
+      });
+      console.log("Success:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error)
+    }
+
+  };
+
+  
+
+  const handleOpenModal = (IpDetailsData: IPAddress) => {
+    setCurrentIP(IpDetailsData || null)
     setIsModalOpen(true)
   }
 
@@ -90,14 +113,38 @@ export default function IPManagement() {
     setCurrentIP(null)
   }
 
-  const handleSaveIP = (newIP: IPAddress) => {
-    if (currentIP) {
-      setIpAddresses(data.map((ip) => (ip.id === newIP.id ? newIP : ip)))
-    } else {
-      setIpAddresses([...data, newIP])
+  // const handleEditSubmit = (newIP: IPAddress) => {
+  //   const method = 'PUT'
+  //   const endpoint = IPAddressUrl+`/${newIP.id}`;
+  //   const data = newIP
+
+  //   handleSubmit({endpoint,method,data})
+  //   //isloading if 200 then close modal if errors ont close the modal
+  //   // handleCloseModal()
+  // }
+  const handleEditSubmit = async (newIP: IPAddress) => {
+    console.log('disableButton')
+    setIsSubmitting(true); 
+  
+    try {
+      const method = "PUT";
+      const endpoint = `${IPAddressUrl}/${newIP.id}`;
+      const data = newIP;
+  
+      const response = await handleSubmit({ endpoint, method, data });
+  
+      if (response) {
+        await mutate(); 
+        handleCloseModal(); 
+      }
+    } catch (error) {
+      console.error("Edit failed:", error);
+     
+    } finally {
+      console.log('enableButton')
+      setIsSubmitting(false);
     }
-    handleCloseModal()
-  }
+  };
 
   const handleDeleteIP = (id: string) => {
     setIpAddresses(data.filter((ip) => ip.id !== id))
@@ -153,9 +200,10 @@ export default function IPManagement() {
       <IPFormModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onSave={handleSaveIP}
+        onSave={handleEditSubmit}
         ip={currentIP}
-        user={user}
+        isSubmitting={isSubmitting}
+        // user={user}
       />
 
       {/* <DeleteConfirmationModal
