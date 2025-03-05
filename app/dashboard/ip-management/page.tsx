@@ -42,7 +42,7 @@ export default function IPManagement() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [currentIP, setCurrentIP] = useState< IPAddress| null>(null)
   const [user, setUser] = useState<User | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { data, error, isLoading,mutate } = useSWR('api/internet-protocol-address', IpFetcher)
   
