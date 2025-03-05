@@ -37,30 +37,25 @@ export default function LoginPage() {
         email,
         password,
       })
-
+      localStorage.setItem("token", response.data.accessToken)
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          email,
+          role: "super-admin",
+        }),
+      )
       // If successful, redirect to admin page
       if (response.status === 200) {
-        router.push("/admin")
+        router.push("/dashboard")
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response) {
-          if (err.response.status === 401) {
-            setError("Invalid email or password. Please try again.")
-          } else if (err.response.status === 429) {
-            setError("Too many login attempts. Please try again later.")
-          } else {
-            setError(`Authentication error: ${err.response.data.message || "Please try again."}`)
-          }
-        } else if (err.request) {
-          setError("No response from server. Please check your connection and try again.")
-        } else {
-          setError("An error occurred. Please try again.")
+        if (err.response && err.response.status === 401) {
+          setError("Invalid email or password. Please try again.")
         }
-      } else {
-        setError("An unexpected error occurred. Please try again.")
+        console.error("Login error:", err)
       }
-      console.error("Login error:", err)
     } finally {
       setLoading(false)
     }
@@ -91,7 +86,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="text-black mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="you@example.com"
               />
             </div>
@@ -113,7 +108,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="text-black mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
