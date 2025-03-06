@@ -4,9 +4,9 @@ export type IPAddress = {
     ip_address: string
     label: string
     comment?: string
-    created_at: string
-    updated_at: string
-    user: UserDetails
+    created_at?: string
+    updated_at?: string
+    user?: UserDetails
 }
   
 export type UserDetails = {
@@ -35,9 +35,16 @@ export type IPAddressPutPayload = {
     comment:string | null
   }
 
-export  type RequestOptions<T> = {
+// export  type RequestOptions<T> = {
+//     endpoint: string;
+//     method?: "get" | "post" | "put" | "patch" | "delete";
+//     data?: T;
+//     params?: Record<string, unknown>;
+//   };
+
+export interface RequestOptions<T> {
     endpoint: string;
-    method?: "get" | "post" | "put" | "patch" | "delete";
-    data?: T;
-    params?: Record<string, unknown>;
-  };
+    method: string; // Could be more specific, e.g., "GET" | "POST" | "PUT" | etc.
+    data: T;
+    params?: Record<string, unknown> | null; // Optional params, defaulting to null
+  }

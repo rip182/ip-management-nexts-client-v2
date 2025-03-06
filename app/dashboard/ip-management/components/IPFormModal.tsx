@@ -1,52 +1,36 @@
-import { useState, useEffect, FormEvent } from "react"
-import {IPAddress,User,IPAddressPostPayload} from "@/types/types"
-// type IPAddress = {
-//   id: string
-//   address: string
-//   label: string
-//   comment?: string
-//   createdBy: string
-//   createdAt: string
-//   updatedAt: string
-// }
-
-// type User = {
-//   email: string
-//   role: string
-// }
+import { useState, useEffect, FormEvent } from "react";
+import { IPAddress } from "@/types/types";
 
 type IPFormModalProps = {
-  isOpen: boolean
-  onClose: () => void
-  onSave: (ip: IPAddress) => void
-  ip: IPAddress | null
-  user?: User | null
-  isSubmitting:boolean
-}
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (ip: IPAddress) => Promise<void>; // Updated to return a Promise
+  ip: IPAddress | null;
+};
 
-export function IPFormModal({ isOpen, onClose, onSave, ip, isSubmitting }: IPFormModalProps) {
-  const [formData, setFormData] = useState({id:"", address: "", label: "", comment: "" })
-  const [formErrors, setFormErrors] = useState({ address: "", label: "" })
+export function IPFormModal({ isOpen, onClose, onSave, ip }: IPFormModalProps) {
+  const [formData, setFormData] = useState({ id: "", address: "", label: "", comment: "" });
+  const [formErrors, setFormErrors] = useState({ address: "", label: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (ip) {
-      setFormData({id:ip.id, address: ip.ip_address, label: ip.label, comment: ip.comment || "" })
+      setFormData({ id: ip.id, address: ip.ip_address, label: ip.label, comment: ip.comment || "" });
     } else {
-      setFormData({id:"", address: "", label: "", comment: "" })
+      setFormData({ id: "", address: "", label: "", comment: "" });
     }
-    setFormErrors({ address: "", label: "" })
-  }, [ip])
+    setFormErrors({ address: "", label: "" });
+  }, [ip]);
 
   const validateIPAddress = (ip: string): boolean => {
-    const ipv4Pattern = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
-    const ipv4Match = ip.match(ipv4Pattern)
+    const ipv4Pattern = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+    const ipv4Match = ip.match(ipv4Pattern);
     const ipv6Pattern = /^(?:(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?=(?:[0-9a-fA-F]{0,4}:){0,7}[0-9a-fA-F]{0,4}$)(([0-9a-fA-F]{1,4}:){1,7}|:)((:[0-9a-fA-F]{1,4}){1,7}|:)|::1|::)$/;
-    const ipv6Match = ip.match(ipv6Pattern)
+    const ipv6Match = ip.match(ipv6Pattern);
     if (ipv4Match) {
-      return ipv4Match.slice(1).every((octet) => Number.parseInt(octet) <= 255)
+      return ipv4Match.slice(1).every((octet) => Number.parseInt(octet) <= 255);
     }
-  
-    if(ipv6Match){
+    if (ipv6Match) {
       if (ip === "::" || ip === "::1") return true;
       const groups = ip.split(":");
       if (groups.some((g) => !/^[0-9a-fA-F]{0,4}$/.test(g))) return false;
@@ -57,66 +41,64 @@ export function IPFormModal({ isOpen, onClose, onSave, ip, isSubmitting }: IPFor
       if (emptyCount === 0 && groups.length !== 8) return false;
       return groups.every((g) => g === "" || (parseInt(g, 16) >= 0 && parseInt(g, 16) <= 65535));
     }
-    return ipv6Pattern.test(ip)
-  }
+    return false;
+  };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    const errors = { address: "", label: "" }
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    const errors = { address: "", label: "" };
 
     if (!formData.address) {
-      errors.address = "IP address is required"
+      errors.address = "IP address is required";
     } else if (!validateIPAddress(formData.address)) {
-      errors.address = "Invalid IP address format"
+      errors.address = "Invalid IP address format";
     }
     if (!formData.label) {
-      errors.label = "Label is required"
+      errors.label = "Label is required";
     }
     if (errors.address || errors.label) {
-      setFormErrors(errors)
-      return
+      setFormErrors(errors);
+      return;
     }
 
-    const newIP: IPAddress = {
-      id:formData.id,
-      ip_address: formData.address,
-      label: formData.label,
-      comment: formData.comment,
+    setIsSubmitting(true);
+    try {
+      const newIP: IPAddress = {
+        id: formData.id,
+        ip_address: formData.address,
+        label: formData.label,
+        comment: formData.comment,
+      };
+      await onSave(newIP);
+      onClose();
+    } catch (error) {
+      console.error("Error saving IP address:", error);
+      setFormErrors({ address: "Failed to save IP address", label: "" });
+    } finally {
+      setIsSubmitting(false);
     }
-    onSave(newIP)
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-        {/* Overlay */}
         <div className="fixed inset-0 bg-gray-500 dark:bg-gray-900 opacity-75 transition-opacity" aria-hidden="true" />
-  
-        {/* Centering spacer for larger screens */}
         <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
-          &#8203;
+          ​
         </span>
-  
-        {/* Modal content */}
         <div className="inline-block w-full transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left align-bottom shadow-xl transition-all sm:my-8 sm:max-w-lg sm:align-middle">
           <form onSubmit={handleSubmit}>
-            {/* Form content */}
             <div className="px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
               <div className="sm:flex sm:items-start">
                 <div className="w-full text-center sm:text-left">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {ip ? "Edit IP Address" : "Add New IP Address"}
                   </h3>
-                  
                   <div className="mt-6 space-y-6">
-                    {/* IP Address Field */}
                     <div className="flex flex-col space-y-1">
-                      <label 
-                        htmlFor="ip-address" 
-                        className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >
+                      <label htmlFor="ip-address" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         IP Address
                       </label>
                       <input
@@ -128,19 +110,11 @@ export function IPFormModal({ isOpen, onClose, onSave, ip, isSubmitting }: IPFor
                         placeholder="e.g. 192.168.1.1 or 2001:db8::7334"
                         value={formData.address}
                         onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        // disabled={!!ip}
                       />
-                      {formErrors.address && (
-                        <p className="text-sm text-red-500">{formErrors.address}</p>
-                      )}
+                      {formErrors.address && <p className="text-sm text-red-500">{formErrors.address}</p>}
                     </div>
-  
-                    {/* Label Field */}
                     <div className="flex flex-col space-y-1">
-                      <label 
-                        htmlFor="label" 
-                        className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >
+                      <label htmlFor="label" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Label
                       </label>
                       <input
@@ -153,17 +127,10 @@ export function IPFormModal({ isOpen, onClose, onSave, ip, isSubmitting }: IPFor
                         value={formData.label}
                         onChange={(e) => setFormData({ ...formData, label: e.target.value })}
                       />
-                      {formErrors.label && (
-                        <p className="text-sm text-red-500">{formErrors.label}</p>
-                      )}
+                      {formErrors.label && <p className="text-sm text-red-500">{formErrors.label}</p>}
                     </div>
-  
-                    {/* Comment Field */}
                     <div className="flex flex-col space-y-1">
-                      <label 
-                        htmlFor="comment" 
-                        className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >
+                      <label htmlFor="comment" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Comment (Optional)
                       </label>
                       <textarea
@@ -179,8 +146,6 @@ export function IPFormModal({ isOpen, onClose, onSave, ip, isSubmitting }: IPFor
                 </div>
               </div>
             </div>
-  
-            {/* Form actions */}
             <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
               <button
                 type="submit"

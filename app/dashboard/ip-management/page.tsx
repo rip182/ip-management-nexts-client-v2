@@ -9,7 +9,7 @@ import { DeleteConfirmationModal } from "./components/DeleteConfirmationModal"
 import IPFilter from "./components/IPFilter"
 import useSWR from "swr"
 import api from "@/lib/axios"
-import type { IPAddress, User,IPAddressPostPayload,IPAddressPutPayload } from '@/types/types'
+import type { IPAddress, User,RequestOptions } from '@/types/types'
 
 const IpFetcher = (url: string) => api.get<IPAddress[]>(url).then((res) => res.data)
 
@@ -53,7 +53,9 @@ export default function IPManagement() {
   //   }
   // }, [searchTerm, data])
 
-  const handleSubmit = async <T, R = unknown>({ endpoint, method, data, params=null }: RequestOptions<T>): Promise<R | void> => {
+  
+
+  const apiSubmit = async <T, R = unknown>({ endpoint, method, data, params=null }: RequestOptions<T>): Promise<R | void> => {
 
     try {
       const response = await api.request<R>({
@@ -72,10 +74,15 @@ export default function IPManagement() {
 
   
 
-  const handleOpenModal = (IpDetailsData: IPAddress) => {
+  const handleOpenModal = (IpDetailsData?: IPAddress):void => {
     setCurrentIP(IpDetailsData || null)
     setIsModalOpen(true)
   }
+
+  const handleAddIPClickEvent = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault(); // Optional: Prevents default behavior if needed
+    handleOpenModal(); // Call without an IPAddress for "create" mode
+  };
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
@@ -91,26 +98,17 @@ export default function IPManagement() {
     setIsDeleteModalOpen(false)
     setCurrentIP(null)
   }
-
-  // const handleEditSubmit = (newIP: IPAddress) => {
-  //   const method = 'PUT'
-  //   const endpoint = IPAddressUrl+`/${newIP.id}`;
-  //   const data = newIP
-
-  //   handleSubmit({endpoint,method,data})
-  //   //isloading if 200 then close modal if errors ont close the modal
-  //   // handleCloseModal()
-  // }
-  const handleEditSubmit = async (newIP: IPAddress) => {
+  
+  const handleSubmit = async (newIP: IPAddress) => {
     console.log('disableButton')
     setIsSubmitting(true); 
   
     try {
-      const method = "PUT";
-      const endpoint = `${IPAddressUrl}/${newIP.id}`;
+      const method = newIP.id ? "PUT" : "POST";
+      const endpoint = newIP.id ? `${IPAddressUrl}/${newIP.id}` : `${IPAddressUrl}`;
       const data = newIP;
   
-      const response = await handleSubmit({ endpoint, method, data });
+      const response = await apiSubmit({ endpoint, method, data });
   
       if (response) {
         await mutate(); 
@@ -151,7 +149,7 @@ export default function IPManagement() {
     <div>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <h1 className="text-2xl font-bold mb-4 md:mb-0">IP Address Management</h1>
-        <button onClick={() => handleOpenModal()} className="btn btn-primary flex items-center">
+        <button onClick={handleAddIPClickEvent} className="btn btn-primary flex items-center">
           <Plus size={18} className="mr-2" />
           Add New IP
         </button>
@@ -179,9 +177,9 @@ export default function IPManagement() {
       <IPFormModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onSave={handleEditSubmit}
+        onSave={handleSubmit}
         ip={currentIP}
-        isSubmitting={isSubmitting}
+        // isSubmitting={isSubmitting}
         // user={user}
       />
 
