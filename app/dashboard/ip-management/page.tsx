@@ -19,7 +19,7 @@ export default function IPManagement() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [currentIP, setCurrentIP] = useState< IPAddress| null>(null)
+  const [currentIP, setCurrentIP] = useState<IPAddress | null>(null);
   const [user, setUser] = useState<User | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -123,8 +123,26 @@ export default function IPManagement() {
     }
   };
 
-  const handleDeleteIP = (id: string) => {
-    setIpAddresses(data.filter((ip) => ip.id !== id))
+  const handleDeleteIP = async (id: string) => {
+    // setIpAddresses(data.filter((ip) => ip.id !== id))
+    try {
+      const method = 'DELETE'
+      const endpoint =`${IPAddressUrl}/`+id
+      const data = id;
+
+    const response = await apiSubmit({ endpoint, method, data });
+  
+      if (response) {
+        await mutate(); 
+        handleCloseModal(); 
+      }
+    } catch (error) {
+      console.error("Edit failed:", error);
+     
+    } finally {
+      console.log('enableButton')
+      setIsSubmitting(false);
+    }
     handleCloseDeleteModal()
   }
 
@@ -134,7 +152,8 @@ export default function IPManagement() {
   }
 
   const canDelete = (ip: IPAddress): boolean => {
-    return user?.role === "super-admin"
+    // return user?.role === "super-admin"
+    return true
   }
 
   if (isLoading) {
@@ -183,12 +202,12 @@ export default function IPManagement() {
         // user={user}
       />
 
-      {/* <DeleteConfirmationModal
+      <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={handleCloseDeleteModal}
         onConfirm={handleDeleteIP}
         ip={currentIP}
-      /> */}
+      />
 
       {/* <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-start">
         <Info className="text-blue-500 dark:text-blue-400 mr-3 mt-0.5 flex-shrink-0" size={20} />

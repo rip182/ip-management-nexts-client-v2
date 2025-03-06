@@ -6,7 +6,7 @@ export type IPAddress = {
     comment?: string
     created_at?: string
     updated_at?: string
-    user?: UserDetails
+    user: UserDetails
 }
   
 export type UserDetails = {

@@ -5,7 +5,7 @@ type IPFormModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSave: (ip: IPAddress) => Promise<void>; // Updated to return a Promise
-  ip: IPAddress | null;
+  ip: IPAddress| null;
 };
 
 export function IPFormModal({ isOpen, onClose, onSave, ip }: IPFormModalProps) {
