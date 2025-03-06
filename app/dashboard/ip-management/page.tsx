@@ -2,35 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { Plus } from "lucide-react"
-import { SearchBar } from "./SearhBar"
-import IPTable  from "./IPTable"
-import { IPFormModal } from "./IPFormModal"
-import { DeleteConfirmationModal } from "./DeleteConfirmationModal"
-import IPFilter from "./IpFilter"
+import { SearchBar } from "./components/SearhBar"
+import IPTable  from "./components/IPTable"
+import { IPFormModal } from "./components/IPFormModal"
+import { DeleteConfirmationModal } from "./components/DeleteConfirmationModal"
+import IPFilter from "./components/IPFilter"
 import useSWR from "swr"
 import api from "@/lib/axios"
-import type { IPAddress, User } from '@/types/types'
-
-// Type definitions (unchanged from original)
-// type IPAddress = {
-//   id: string
-//   address: string
-//   label: string
-//   comment?: string
-//   createdBy: string
-//   createdAt: string
-//   updatedAt: string
-// }
-
-// type User = {
-//   email: string
-//   role: string
-// }
-
-// Mock data (unchanged from original)
-// const mockIPs: IPAddress[] = [
-//   // ... (mock data remains the same as in the original query)
-// ]
+import type { IPAddress, User,RequestOptions } from '@/types/types'
 
 const IpFetcher = (url: string) => api.get<IPAddress[]>(url).then((res) => res.data)
 
@@ -40,12 +19,16 @@ export default function IPManagement() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [currentIP, setCurrentIP] = useState<IPAddress | null>(null)
+  const [currentIP, setCurrentIP] = useState<IPAddress | null>(null);
   const [user, setUser] = useState<User | null>(null)
-  // const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const { data, error, isLoading } = useSWR('api/internet-protocol-address', IpFetcher)
+  const { data, error, isLoading,mutate } = useSWR('api/internet-protocol-address', IpFetcher)
   
+  const IPAddressUrl = '/api/internet-protocol-address'
+  // useEffect(()=>{
+  //   console.log(currentIP)
+  // },[currentIP])
   // useEffect(() => {
   //   setIpAddresses(mockIPs)
   //   setFilteredIPs(mockIPs)
@@ -70,10 +53,36 @@ export default function IPManagement() {
   //   }
   // }, [searchTerm, data])
 
-  const handleOpenModal = (ip?: IPAddress) => {
-    setCurrentIP(ip || null)
+  
+
+  const apiSubmit = async <T, R = unknown>({ endpoint, method, data, params=null }: RequestOptions<T>): Promise<R | void> => {
+
+    try {
+      const response = await api.request<R>({
+        url: endpoint,
+        method,
+        data,
+        params,
+      });
+      console.log("Success:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error)
+    }
+
+  };
+
+  
+
+  const handleOpenModal = (IpDetailsData?: IPAddress):void => {
+    setCurrentIP(IpDetailsData || null)
     setIsModalOpen(true)
   }
+
+  const handleAddIPClickEvent = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault(); // Optional: Prevents default behavior if needed
+    handleOpenModal(); // Call without an IPAddress for "create" mode
+  };
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
@@ -89,18 +98,51 @@ export default function IPManagement() {
     setIsDeleteModalOpen(false)
     setCurrentIP(null)
   }
-
-  const handleSaveIP = (newIP: IPAddress) => {
-    if (currentIP) {
-      setIpAddresses(data.map((ip) => (ip.id === newIP.id ? newIP : ip)))
-    } else {
-      setIpAddresses([...data, newIP])
+  
+  const handleSubmit = async (newIP: IPAddress) => {
+    console.log('disableButton')
+    setIsSubmitting(true); 
+  
+    try {
+      const method = newIP.id ? "PUT" : "POST";
+      const endpoint = newIP.id ? `${IPAddressUrl}/${newIP.id}` : `${IPAddressUrl}`;
+      const data = newIP;
+  
+      const response = await apiSubmit({ endpoint, method, data });
+  
+      if (response) {
+        await mutate(); 
+        handleCloseModal(); 
+      }
+    } catch (error) {
+      console.error("Edit failed:", error);
+     
+    } finally {
+      console.log('enableButton')
+      setIsSubmitting(false);
     }
-    handleCloseModal()
-  }
+  };
 
-  const handleDeleteIP = (id: string) => {
-    setIpAddresses(data.filter((ip) => ip.id !== id))
+  const handleDeleteIP = async (id: string) => {
+    // setIpAddresses(data.filter((ip) => ip.id !== id))
+    try {
+      const method = 'DELETE'
+      const endpoint =`${IPAddressUrl}/`+id
+      const data = id;
+
+    const response = await apiSubmit({ endpoint, method, data });
+  
+      if (response) {
+        await mutate(); 
+        handleCloseModal(); 
+      }
+    } catch (error) {
+      console.error("Edit failed:", error);
+     
+    } finally {
+      console.log('enableButton')
+      setIsSubmitting(false);
+    }
     handleCloseDeleteModal()
   }
 
@@ -110,7 +152,8 @@ export default function IPManagement() {
   }
 
   const canDelete = (ip: IPAddress): boolean => {
-    return user?.role === "super-admin"
+    // return user?.role === "super-admin"
+    return true
   }
 
   if (isLoading) {
@@ -125,10 +168,10 @@ export default function IPManagement() {
     <div>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <h1 className="text-2xl font-bold mb-4 md:mb-0">IP Address Management</h1>
-        {/* <button onClick={() => handleOpenModal()} className="btn btn-primary flex items-center">
+        <button onClick={handleAddIPClickEvent} className="btn btn-primary flex items-center">
           <Plus size={18} className="mr-2" />
           Add New IP
-        </button> */}
+        </button>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
@@ -153,17 +196,18 @@ export default function IPManagement() {
       <IPFormModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onSave={handleSaveIP}
+        onSave={handleSubmit}
         ip={currentIP}
-        user={user}
+        // isSubmitting={isSubmitting}
+        // user={user}
       />
 
-      {/* <DeleteConfirmationModal
+      <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={handleCloseDeleteModal}
         onConfirm={handleDeleteIP}
         ip={currentIP}
-      /> */}
+      />
 
       {/* <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-start">
         <Info className="text-blue-500 dark:text-blue-400 mr-3 mt-0.5 flex-shrink-0" size={20} />

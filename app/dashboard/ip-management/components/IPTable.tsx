@@ -52,7 +52,7 @@ export default function  IPTable({ ips, onEdit, onDelete, canModify, canDelete }
                   {ip.user.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  {new Date(ip.updated_at).toLocaleString()}
+                  {new Date(ip.updated_at ?? "").toLocaleString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex justify-end space-x-2">

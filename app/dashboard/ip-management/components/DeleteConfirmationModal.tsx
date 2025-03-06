@@ -1,10 +1,5 @@
 import { AlertCircle } from "lucide-react"
-
-type IPAddress = {
-  id: string
-  address: string
-  label: string
-}
+import { IPAddress } from "@/types/types"
 
 type DeleteConfirmationModalProps = {
   isOpen: boolean
@@ -38,7 +33,7 @@ export function DeleteConfirmationModal({ isOpen, onClose, onConfirm, ip }: Dele
                 <div className="mt-2">
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Are you sure you want to delete the IP address{" "}
-                    <span className="font-semibold">{ip.address}</span> ({ip.label})? This action cannot be undone.
+                    <span className="font-semibold">{ip.ip_address}</span> ({ip.label})? This action cannot be undone.
                   </p>
                 </div>
               </div>
