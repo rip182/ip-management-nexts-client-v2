@@ -11,27 +11,6 @@ import useSWR from "swr"
 import api from "@/lib/axios"
 import type { IPAddress, User,IPAddressPostPayload,IPAddressPutPayload } from '@/types/types'
 
-// Type definitions (unchanged from original)
-// type IPAddress = {
-//   id: string
-//   address: string
-//   label: string
-//   comment?: string
-//   createdBy: string
-//   createdAt: string
-//   updatedAt: string
-// }
-
-// type User = {
-//   email: string
-//   role: string
-// }
-
-// Mock data (unchanged from original)
-// const mockIPs: IPAddress[] = [
-//   // ... (mock data remains the same as in the original query)
-// ]
-
 const IpFetcher = (url: string) => api.get<IPAddress[]>(url).then((res) => res.data)
 
 export default function IPManagement() {
@@ -172,10 +151,10 @@ export default function IPManagement() {
     <div>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <h1 className="text-2xl font-bold mb-4 md:mb-0">IP Address Management</h1>
-        {/* <button onClick={() => handleOpenModal()} className="btn btn-primary flex items-center">
+        <button onClick={() => handleOpenModal()} className="btn btn-primary flex items-center">
           <Plus size={18} className="mr-2" />
           Add New IP
-        </button> */}
+        </button>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
