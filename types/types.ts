@@ -19,9 +19,15 @@ export type UserDetails = {
 }
   
 export type User = {
-    email: string
-    role: string
-}
+  id: number;
+  name: string;
+  email: string;
+  email_verified_at: string;
+  created_at: string;
+  updated_at: string;
+  role?: string; 
+};
+
 
 export type IPAddressPostPayload = {
   ip_address: string
@@ -48,3 +54,21 @@ export interface RequestOptions<T> {
     data: T;
     params?: Record<string, unknown> | null; // Optional params, defaulting to null
   }
+
+  export type AuditLog = {
+    id: number;
+    user_type: string;
+    user_id: number;
+    event: string;
+    auditable_type: string;
+    auditable_id: number;
+    old_values: Record<string, any> | null;
+    new_values: Record<string, any> | null;
+    url: string;
+    ip_address: string;
+    user_agent: string;
+    tags: string | null;
+    created_at: string;
+    updated_at: string;
+    user: User;
+  };
