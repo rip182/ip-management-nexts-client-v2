@@ -5,6 +5,7 @@ import { Search, Calendar, Download, X, Info } from "lucide-react";
 import useSWR from "swr";
 import api from "@/lib/axios";
 import { User, AuditLog } from "@/types/types";
+import Table from "./components/table"; // Adjust the relative path as needed
 
 export type PaginatedResponse<T> = {
   data: T[];
@@ -28,10 +29,12 @@ const auditFetcher = (url: string) =>
 export default function AuditLogsPage() {
   const [filteredLogs, setFilteredLogs] = useState<AuditLog[] | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
+  const [actionFilter, setActionFilter] = useState("all");
   const [user, setUser] = useState<User | null>(null);
-  const [actionFilter, setActionFilter] = useState<string>("all");
-  const { data, error, isLoading } = useSWR("/api/audit", auditFetcher);
+  const [page, setPage] = useState(1);
+  const { data, error, isLoading } = useSWR(`/api/audit?page=${page}`, auditFetcher);
 
+  // Retrieve user from localStorage
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -39,33 +42,35 @@ export default function AuditLogsPage() {
     }
   }, []);
 
+  // Filter logs based on search term and action filter
   useEffect(() => {
     if (!data?.data) {
-      setFilteredLogs(undefined);
+      setFilteredLogs([]);
       return;
     }
 
-    let filtered = [...data.data];
+    let logs = [...data.data];
 
     if (searchTerm) {
-      filtered = filtered.filter((log) =>
+      const lowerSearch = searchTerm.toLowerCase();
+      logs = logs.filter((log) =>
         [
-          log.user.name?.toLowerCase(),
+          log.user?.name?.toLowerCase(),
           log.event?.toLowerCase(),
           log.ip_address?.toLowerCase(),
           log.user_agent?.toLowerCase(),
-          JSON.stringify(log.new_values)?.toLowerCase(),
-          JSON.stringify(log.old_values)?.toLowerCase(),
-        ].some((value) => value?.includes(searchTerm.toLowerCase()))
+          JSON.stringify(log.new_values).toLowerCase(),
+          JSON.stringify(log.old_values).toLowerCase(),
+        ].some((value) => value?.includes(lowerSearch))
       );
     }
 
     if (actionFilter !== "all") {
-      filtered = filtered.filter((log) => log.event === actionFilter);
+      logs = logs.filter((log) => log.event === actionFilter);
     }
 
-    setFilteredLogs(filtered);
-  }, [searchTerm, data, actionFilter]);
+    setFilteredLogs(logs);
+  }, [data, searchTerm, actionFilter]);
 
   const handleExportLogs = () => {
     alert("Exporting logs is not implemented in this demo");
@@ -97,7 +102,7 @@ export default function AuditLogsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
       </div>
     );
   }
@@ -111,7 +116,7 @@ export default function AuditLogsPage() {
     );
   }
 
-  if (user?.role !== "super-admin") {
+  if (!user || user.role !== "super-admin") {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <div className="text-red-500 mb-4">
@@ -121,6 +126,7 @@ export default function AuditLogsPage() {
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"
@@ -166,6 +172,7 @@ export default function AuditLogsPage() {
             />
             {searchTerm && (
               <button
+                aria-label="Clear search"
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 onClick={() => setSearchTerm("")}
               >
@@ -195,69 +202,31 @@ export default function AuditLogsPage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Timestamp
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Action
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  User
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  IP Address
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Old Values
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  New Values
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredLogs && filteredLogs.length > 0 ? (
-                filteredLogs.map((log) => (
-                  <tr key={log.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(log.created_at).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs rounded-full ${getActionColor(log.event)}`}>
-                        {log.event}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {log.user.name || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {log.ip_address || "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                      {formatValues(log.old_values)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                      {formatValues(log.new_values)}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    No audit logs found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        {/* Render the Table component */}
+        {filteredLogs && <Table logs={filteredLogs} getActionColor={getActionColor} formatValues={formatValues} />}
+
+        {/* Pagination Controls */}
+        {data && (
+          <div className="flex items-center justify-between mt-4">
+            <button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={!data.prev_page_url}
+              className="btn btn-secondary"
+            >
+              Previous
+            </button>
+            <span>
+              Page {data.current_page} of {data.last_page}
+            </span>
+            <button
+              onClick={() => setPage((prev) => (data && data.current_page < data.last_page ? prev + 1 : prev))}
+              disabled={!data.next_page_url}
+              className="btn btn-secondary"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-start">
@@ -265,9 +234,9 @@ export default function AuditLogsPage() {
         <div>
           <h3 className="font-medium text-blue-800 dark:text-blue-300">About Audit Logs</h3>
           <p className="mt-2 text-sm text-blue-700 dark:text-blue-300">
-            The audit log provides a complete history of all actions performed in the system. This includes user
-            logins/logouts, IP address creations, updates, and deletions. Audit logs cannot be modified or deleted by any
-            user, ensuring a tamper-proof record of all system activities.
+            The audit log provides a complete history of all actions performed in the system. This includes user logins/logouts,
+            IP address creations, updates, and deletions. Audit logs cannot be modified or deleted by any user,
+            ensuring a tamper-proof record of all system activities.
           </p>
         </div>
       </div>
