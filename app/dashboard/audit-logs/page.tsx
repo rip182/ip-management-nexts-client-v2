@@ -34,7 +34,7 @@ export default function AuditLogsPage() {
   const [page, setPage] = useState(1);
   const { data, error, isLoading } = useSWR(`/api/audit?page=${page}`, auditFetcher);
 
-  // Retrieve user from localStorage
+
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -42,7 +42,7 @@ export default function AuditLogsPage() {
     }
   }, []);
 
-  // Filter logs based on search term and action filter
+
   useEffect(() => {
     if (!data?.data) {
       setFilteredLogs([]);
@@ -202,30 +202,21 @@ export default function AuditLogsPage() {
           </div>
         </div>
 
-        {/* Render the Table component */}
-        {filteredLogs && <Table logs={filteredLogs} getActionColor={getActionColor} formatValues={formatValues} />}
-
-        {/* Pagination Controls */}
-        {data && (
-          <div className="flex items-center justify-between mt-4">
-            <button
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              disabled={!data.prev_page_url}
-              className="btn btn-secondary"
-            >
-              Previous
-            </button>
-            <span>
-              Page {data.current_page} of {data.last_page}
-            </span>
-            <button
-              onClick={() => setPage((prev) => (data && data.current_page < data.last_page ? prev + 1 : prev))}
-              disabled={!data.next_page_url}
-              className="btn btn-secondary"
-            >
-              Next
-            </button>
-          </div>
+        {/* Render the Table component with pagination controls */}
+        {filteredLogs && data && (
+          <Table
+            logs={filteredLogs}
+            getActionColor={getActionColor}
+            formatValues={formatValues}
+            currentPage={data.current_page}
+            lastPage={data.last_page}
+            prevPageUrl={data.prev_page_url}
+            nextPageUrl={data.next_page_url}
+            onPrevPage={() => setPage((prev) => Math.max(prev - 1, 1))}
+            onNextPage={() =>
+              setPage((prev) => (data && data.current_page < data.last_page ? prev + 1 : prev))
+            }
+          />
         )}
       </div>
 
