@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import axios from "axios"
+import { useAuth } from "@/context/authProvider";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
@@ -17,6 +18,8 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const { login } = useAuth();
+  
 
   useEffect(() => {
 
@@ -32,30 +35,9 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // Attempt login
-      const response = await api.post("/api/login", {
-        email,
-        password,
-      })
-      localStorage.setItem("token", response.data.accessToken)
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          email,
-          role: "super-admin",
-        }),
-      )
-      // If successful, redirect to admin page
-      if (response.status === 200) {
-        router.push("/dashboard")
-      }
+      await login(email, password);
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        if (err.response && err.response.status === 401) {
-          setError("Invalid email or password. Please try again.")
-        }
-        console.error("Login error:", err)
-      }
+      setError("Invalid credentials");
     } finally {
       setLoading(false)
     }

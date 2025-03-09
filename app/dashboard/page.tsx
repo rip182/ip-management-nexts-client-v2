@@ -1,7 +1,21 @@
+"use client"
+
+import { useEffect } from "react";
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { useAuth } from "@/context/authProvider";
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
+  const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, router]);
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
