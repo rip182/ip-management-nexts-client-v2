@@ -3,23 +3,25 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import api, { setAuthToken } from "@/lib/axios";
-// import tty
+import {User} from '@/types/types'
+
 interface AuthContextType {
-  user: any;
+  user: User|null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  role:string
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User|null>(null);
+  const [role,setRole] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Try auto-login using session storage (not localStorage)
     const userData = sessionStorage.getItem("user");
     if (userData) {
       const parsedUser = JSON.parse(userData);
@@ -33,11 +35,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await api.post("api/login", { email, password });
       console.log(response)
-      const { accessToken, user } = response.data;
+      const { accessToken, user,role } = response.data;
 
       setAuthToken(accessToken);
       setUser(user);
       setIsAuthenticated(true);
+      setRole(role);
       sessionStorage.setItem("user", JSON.stringify({ accessToken, ...user }));
 
       router.push("/dashboard");
@@ -56,7 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated,role }}>
       {children}
     </AuthContext.Provider>
   );

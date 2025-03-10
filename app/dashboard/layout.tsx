@@ -21,7 +21,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout,role } = useAuth();
 
   // Ensure user is loaded before rendering
   useEffect(() => {
@@ -42,8 +42,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
 
+  const userRole = role;
 
-  const userRole = user?.roles?.length > 0 ? user.roles[0].name : null;
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">

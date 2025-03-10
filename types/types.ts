@@ -25,9 +25,8 @@ export type User = {
   email_verified_at: string;
   created_at: string;
   updated_at: string;
-  role?: string; 
+  role: string; 
 };
-
 
 export type IPAddressPostPayload = {
   ip_address: string
