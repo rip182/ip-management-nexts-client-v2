@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import api, { setAuthToken } from "@/lib/axios";
+import api, { setAuthToken, fetchCsrfToken } from "@/lib/axios";
 import {User} from '@/types/types'
 
 interface AuthContextType {
@@ -14,7 +14,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
-
+// const prefetchCsrf = fetchCsrfToken();
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User|null>(null);
   const [role,setRole] = useState<string>('');
@@ -33,7 +33,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await api.post("api/login", { email, password });
+
+      // await prefetchCsrf
+      const response = await api.post("/api/login", { email, password });
       console.log(response)
       const { accessToken, user,role } = response.data;
 

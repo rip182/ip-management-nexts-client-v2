@@ -4,13 +4,9 @@ import { useState, type FormEvent, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import axios from "axios"
+
 import { useAuth } from "@/context/authProvider";
 
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
-  withCredentials: true,
-})
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -21,13 +17,14 @@ export default function LoginPage() {
   const { login } = useAuth();
   
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    api.get("/sanctum/csrf-cookie").catch((error) => {
-      console.error("Error fetching CSRF token:", error)
-      setError("Failed to initialize login. Please try again.")
-    })
-  }, [])
+  //   // api.get("/sanctum/csrf-cookie").catch((error) => {
+  //   //   console.error("Error fetching CSRF token:", error)
+  //   //   setError("Failed to initialize login. Please try again.")
+  //   // })
+  //   await fetchCsrfToken();
+  // }, [])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -35,6 +32,7 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
+      // await fetchCsrfToken();
       await login(email, password);
     } catch (err) {
       setError("Invalid credentials");

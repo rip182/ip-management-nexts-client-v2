@@ -11,7 +11,6 @@ import useSWR from "swr"
 import api from "@/lib/axios"
 import type { IPAddress, User,RequestOptions } from '@/types/types'
 
-const IpFetcher = (url: string) => api.get<IPAddress[]>(url).then((res) => res.data)
 
 export default function IPManagement() {
   const [IpAddresses, setIpAddresses] = useState<IPAddress[]>([])
@@ -22,10 +21,11 @@ export default function IPManagement() {
   const [currentIP, setCurrentIP] = useState<IPAddress | null>(null);
   const [user, setUser] = useState<User | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const { data, error, isLoading,mutate } = useSWR('api/internet-protocol-address', IpFetcher)
   
+  const IpFetcher = (url: string) => api.get<IPAddress[]>(url).then((res) => res.data)
   const IPAddressUrl = '/api/internet-protocol-address'
+  const { data, error, isLoading,mutate } = useSWR(IPAddressUrl, IpFetcher)
+  
   // useEffect(()=>{
   //   console.log(currentIP)
   // },[currentIP])
