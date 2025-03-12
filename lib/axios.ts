@@ -13,10 +13,9 @@ const api = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json",
   },
-  withCredentials: true, // Ensures cookies (refresh token) are sent
+  withCredentials: true,
 });
 
-// Interceptor to attach token to requests
 api.interceptors.request.use(
   (config) => {
     if (authToken) {
@@ -27,7 +26,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor to refresh token on 401 response
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -37,11 +35,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        console.log("🔄 Refresh token triggered"); // Log for visibility
-        // debugger; // Stops execution in DevTools
-
         const res = await axios.get(
-          // `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/refresh-token`
           `/api/auth/refresh-token`
         );
 
@@ -50,7 +44,6 @@ api.interceptors.response.use(
         const newAccessToken = res.data.accessToken;
         setAuthToken(newAccessToken);
 
-        // Retry the original request with new token
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
@@ -63,18 +56,5 @@ api.interceptors.response.use(
   }
 );
 
-export const fetchCsrfToken = async () => {
-  await api.get('sanctum/csrf-cookie');
-  console.log('CSRF token fetched');
-};
-// const baseApi = axios.create({
-//   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
-//   timeout: 10000,
-//   headers: {
-//     'Content-Type': 'application/json',
-//     Accept: 'application/json',
-//   },
-//   withCredentials: true,
-// });
 
 export default api;

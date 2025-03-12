@@ -10,30 +10,26 @@ import {
   Users,
   Settings,
   LogOut,
-  Menu,
-  X,
-  ChevronDown,
+
 } from "lucide-react";
 import { useAuth } from "@/context/authProvider";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+
+
   const router = useRouter();
   const pathname = usePathname();
-  const { user, logout,role,isAuthenticated } = useAuth();
+  const { user, logout,role,isAuthenticated,loading } = useAuth();
 
-  // Ensure user is loaded before rendering
   useEffect(() => {
+    if (loading) return; 
     if (!isAuthenticated) {
-      // router.push("/login");]
-      console.log('no user')
-      return;
+      router.push("/login");
+      console.log("No user, redirecting to login");
     }
-    setIsLoading(false);
-  }, [user, router]); // Fix: Added `user` to dependencies
+  }, [isAuthenticated, loading, router]);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
