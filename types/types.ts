@@ -7,6 +7,7 @@ export type IPAddress = {
     created_at?: string
     updated_at?: string
     user: UserDetails
+    user_id:number
 }
   
 export type UserDetails = {
