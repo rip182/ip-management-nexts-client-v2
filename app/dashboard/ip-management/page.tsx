@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus } from "lucide-react"
+import { Plus,Info } from "lucide-react"
 import { SearchBar } from "./components/SearhBar"
 import IPTable  from "./components/IPTable"
 import { IPFormModal } from "./components/IPFormModal"
@@ -10,6 +10,7 @@ import IPFilter from "./components/IPFilter"
 import useSWR from "swr"
 import api from "@/lib/axios"
 import type { IPAddress, User,RequestOptions } from '@/types/types'
+import { useAuth } from "@/context/authProvider";
 
 
 export default function IPManagement() {
@@ -19,13 +20,13 @@ export default function IPManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [currentIP, setCurrentIP] = useState<IPAddress | null>(null);
-  const [user, setUser] = useState<User | null>(null)
+  // const [user, setUser] = useState<User | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
-  const IpFetcher = (url: string) => api.get<IPAddress[]>(url).then((res) => res.data)
   const IPAddressUrl = '/api/internet-protocol-address'
+  const IpFetcher = (url: string) => api.get<IPAddress[]>(url).then((res) => res.data)
   const { data, error, isLoading,mutate } = useSWR(IPAddressUrl, IpFetcher)
-  
+  const { user } = useAuth();
   // useEffect(()=>{
   //   console.log(currentIP)
   // },[currentIP])
@@ -124,7 +125,6 @@ export default function IPManagement() {
   };
 
   const handleDeleteIP = async (id: string) => {
-    // setIpAddresses(data.filter((ip) => ip.id !== id))
     try {
       const method = 'DELETE'
       const endpoint =`${IPAddressUrl}/`+id
@@ -148,12 +148,11 @@ export default function IPManagement() {
 
   const canModify = (ip: IPAddress): boolean => {
     if (user?.role === "super-admin") return true
-    return ip.createdBy === user?.email
+    return ip.user_id === user?.id
   }
 
   const canDelete = (ip: IPAddress): boolean => {
-    // return user?.role === "super-admin"
-    return true
+    return user?.role === "super-admin"
   }
 
   if (isLoading) {
@@ -209,7 +208,7 @@ export default function IPManagement() {
         ip={currentIP}
       />
 
-      {/* <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-start">
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-start">
         <Info className="text-blue-500 dark:text-blue-400 mr-3 mt-0.5 flex-shrink-0" size={20} />
         <div>
           <h3 className="font-medium text-blue-800 dark:text-blue-300">IP Management Rules</h3>
@@ -220,7 +219,7 @@ export default function IPManagement() {
             <li>• Both IPv4 and IPv6 addresses are supported.</li>
           </ul>
         </div>
-      </div> */}
+      </div>
     </div>
   )
 }
