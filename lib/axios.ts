@@ -1,5 +1,6 @@
 import axios from "axios";
-
+import Toastify from "toastify-js"
+import "toastify-js/src/toastify.css"
 let authToken: string | null = null;
 
 export const setAuthToken = (token: string | null) => {
@@ -39,15 +40,21 @@ api.interceptors.response.use(
           `/api/auth/refresh-token`
         );
 
-        console.log("✅ Refresh token success:", res.data);
-
         const newAccessToken = res.data.accessToken;
         setAuthToken(newAccessToken);
 
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        console.error("❌ Refresh token failed", refreshError);
+        Toastify({
+          text: "Authentication failed! Please try again.",
+          duration: 3000,
+          close: true,
+          gravity: "top",
+          position: "right", 
+          backgroundColor: "linear-gradient(to right, #ff4d4d, #ff0000)",
+          stopOnFocus: true,
+        }).showToast();
         return Promise.reject(refreshError);
       }
     }
