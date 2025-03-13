@@ -8,7 +8,7 @@ type IPFormModalProps = {
   ip: IPAddress| null;
 };
 
-export function IPFormModal({ isOpen, onClose, onSave, ip }: IPFormModalProps) {
+export function IPFormModal({ isOpen, onClose, onSave, ip, }: IPFormModalProps) {
   const [formData, setFormData] = useState({ id: "", address: "", label: "", comment: "" });
   const [formErrors, setFormErrors] = useState({ address: "", label: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
