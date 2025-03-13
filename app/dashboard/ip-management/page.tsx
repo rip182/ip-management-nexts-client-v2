@@ -8,9 +8,11 @@ import { IPFormModal } from "./components/IPFormModal"
 import { DeleteConfirmationModal } from "./components/DeleteConfirmationModal"
 import IPFilter from "./components/IPFilter"
 import useSWR from "swr"
-import api from "@/lib/axios"
-import type { IPAddress, User,RequestOptions } from '@/types/types'
-import { useAuth } from "@/context/authProvider";
+import api,{request} from "@/lib/axios"
+import type { IPAddress } from '@/types/types'
+import { useAuth } from "@/context/authProvider";;
+import "toastify-js/src/toastify.css"; 
+
 
 
 export default function IPManagement() {
@@ -20,26 +22,12 @@ export default function IPManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [currentIP, setCurrentIP] = useState<IPAddress | null>(null);
-  // const [user, setUser] = useState<User | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const IPAddressUrl = '/api/internet-protocol-address'
   const IpFetcher = (url: string) => api.get<IPAddress[]>(url).then((res) => res.data)
-  const { data, error, isLoading,mutate } = useSWR(IPAddressUrl, IpFetcher)
+  const { data, isLoading,mutate } = useSWR(IPAddressUrl, IpFetcher)
   const { user } = useAuth();
-  // useEffect(()=>{
-  //   console.log(currentIP)
-  // },[currentIP])
-  // useEffect(() => {
-  //   setIpAddresses(mockIPs)
-  //   setFilteredIPs(mockIPs)
-  //   const userData = localStorage.getItem("user")
-  //   if (userData) {
-  //     setUser(JSON.parse(userData))
-  //   }
-  //   setIsLoading(false)
-  // }, [])
-
   // useEffect(() => {
   //   if (searchTerm) {
   //     const filtered = data.filter(
@@ -54,26 +42,6 @@ export default function IPManagement() {
   //   }
   // }, [searchTerm, data])
 
-  
-
-  const apiSubmit = async <T, R = unknown>({ endpoint, method, data, params=null }: RequestOptions<T>): Promise<R | void> => {
-
-    try {
-      const response = await api.request<R>({
-        url: endpoint,
-        method,
-        data,
-        params,
-      });
-      console.log("Success:", response.data);
-      return response.data;
-    } catch (error) {
-      console.log(error)
-    }
-
-  };
-
-  
 
   const handleOpenModal = (IpDetailsData?: IPAddress):void => {
     setCurrentIP(IpDetailsData || null)
@@ -109,7 +77,7 @@ export default function IPManagement() {
       const endpoint = newIP.id ? `${IPAddressUrl}/${newIP.id}` : `${IPAddressUrl}`;
       const data = newIP;
   
-      const response = await apiSubmit({ endpoint, method, data });
+      const response = await request({ endpoint, method, data });
   
       if (response) {
         await mutate(); 
@@ -130,7 +98,7 @@ export default function IPManagement() {
       const endpoint =`${IPAddressUrl}/`+id
       const data = id;
 
-    const response = await apiSubmit({ endpoint, method, data });
+    const response = await request({ endpoint, method, data });
   
       if (response) {
         await mutate(); 

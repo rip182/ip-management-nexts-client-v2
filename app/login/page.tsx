@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, type FormEvent, useEffect } from "react"
+import { useState, type FormEvent } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import Image from "next/image"
 
 import { useAuth } from "@/context/authProvider";
@@ -13,18 +12,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
+
   const { login } = useAuth();
   
-
-  // useEffect(() => {
-
-  //   // api.get("/sanctum/csrf-cookie").catch((error) => {
-  //   //   console.error("Error fetching CSRF token:", error)
-  //   //   setError("Failed to initialize login. Please try again.")
-  //   // })
-  //   await fetchCsrfToken();
-  // }, [])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -32,12 +22,15 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // await fetchCsrfToken();
       await login(email, password);
-    } catch (err) {
-      setError("Invalid credentials");
+    } catch (err:unknown) {
+      if (err instanceof Error) {
+        setError(err.message); // Use the actual error message
+      } else {
+        setError("Invalid credentials"); // Fallback message
+      }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -154,7 +147,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-8 text-center text-sm text-gray-600">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
             Sign up
           </Link>
