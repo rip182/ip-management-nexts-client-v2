@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Plus,Info } from "lucide-react"
-import { SearchBar } from "./components/SearhBar"
+import { SearchBar } from "./components/SearchBar"
 import IPTable  from "./components/IPTable"
 import { IPFormModal } from "./components/IPFormModal"
 import { DeleteConfirmationModal } from "./components/DeleteConfirmationModal"
@@ -27,7 +27,7 @@ export default function IPManagement() {
   const IPAddressUrl = '/api/internet-protocol-address'
   const IpFetcher = (url: string) => api.get<IPAddress[]>(url).then((res) => res.data)
   const { data, isLoading,mutate } = useSWR(IPAddressUrl, IpFetcher)
-  const { user } = useAuth();
+  const { user,role} = useAuth();
   // useEffect(() => {
   //   if (searchTerm) {
   //     const filtered = data.filter(
@@ -115,12 +115,16 @@ export default function IPManagement() {
   }
 
   const canModify = (ip: IPAddress): boolean => {
-    if (user?.role === "super-admin") return true
-    return ip.user_id === user?.id
+    if (role === "super-admin"){
+      return true
+    }
+    else{
+      return ip.user_id === user?.id
+    }
   }
 
   const canDelete = (ip: IPAddress): boolean => {
-    return user?.role === "super-admin"
+    return role === "super-admin"
   }
 
   if (isLoading) {
