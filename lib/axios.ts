@@ -35,7 +35,6 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     const status = error.response?.status;
 
-    // Handle Unauthorized (401) - Attempt Token Refresh
     if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
@@ -45,12 +44,10 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        showToast("Session expired. Please log in again.", "error");
         return Promise.reject(refreshError);
       }
     }
 
-    // Handle other errors dynamically
     const errorMessage =
       error.response?.data?.message || "Something went wrong. Please try again.";
 
@@ -59,7 +56,6 @@ api.interceptors.response.use(
   }
 );
 
-// Reusable Toast Function
 const showToast = (message: string, type: "success" | "error") => {
   Toastify({
     text: message,

@@ -31,17 +31,17 @@ const fetchUser = async () => {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { data, error, isLoading, mutate } = useSWR("/api/user", fetchUser, { refreshInterval: 60000 });
+  const { data, isLoading, mutate } = useSWR("/api/user", fetchUser, { refreshInterval: 60000 });
 
   const user = data?.user || null;
   const role = data?.role || "";
-  const isAuthenticated = !!user;
+  const isAuthenticated:boolean = !!user;
 
   useEffect(() => {
     if (isAuthenticated && pathname === "/login") {
       router.push("/dashboard");
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router,pathname]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -56,10 +56,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const logout = () => {
-    setAuthToken(null);
-    mutate(null, false);
-    router.push("/login");
+  const logout = async () => {
+    try {
+      await api.post('/api/logout');
+      setAuthToken(null);
+      mutate(null, false);
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+
   };
 
   if (isLoading) {
