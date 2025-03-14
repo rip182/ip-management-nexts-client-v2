@@ -118,9 +118,8 @@ export default function IPManagement() {
     if (role === "super-admin"){
       return true
     }
-    else{
-      return ip.user_id === user?.id
-    }
+    
+    return ip.user_id === user?.id
   }
 
   const canDelete = (ip: IPAddress): boolean => {

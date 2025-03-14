@@ -5,7 +5,8 @@ import { Search, Calendar, Download, X, Info } from "lucide-react";
 import useSWR from "swr";
 import api from "@/lib/axios";
 import { User, AuditLog } from "@/types/types";
-import Table from "./components/table"; // Adjust the relative path as needed
+import Table from "./components/table";
+import { useRouter } from "next/navigation";
 
 export type PaginatedResponse<T> = {
   data: T[];
@@ -27,6 +28,7 @@ const auditFetcher = (url: string) =>
   api.get<PaginatedResponse<AuditLog>>(url).then((res) => res.data);
 
 export default function AuditLogsPage() {
+  const route = useRouter();
   const [filteredLogs, setFilteredLogs] = useState<AuditLog[] | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
@@ -39,6 +41,8 @@ export default function AuditLogsPage() {
 
 
   useEffect(() => {
+    if(error) route.push('/dashboard')
+    console.log(error)
     if (!data?.data) {
       setFilteredLogs([]);
       return;
@@ -65,7 +69,7 @@ export default function AuditLogsPage() {
     }
 
     setFilteredLogs(logs);
-  }, [data, searchTerm, actionFilter]);
+  }, [data, searchTerm, actionFilter,error]);
 
   const handleExportLogs = () => {
     alert("Exporting logs is not implemented in this demo");

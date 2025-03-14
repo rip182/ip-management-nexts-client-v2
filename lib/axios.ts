@@ -97,8 +97,12 @@ export const request = async <R>({
 
     if (method === "POST") {
       showToast("Created successfully!", "success");
-    } else if (method === "PUT") {
+    } 
+    if (method === "PUT") {
       showToast("Updated successfully!", "success");
+    }
+    if (method === "DELETE") {
+      showToast("Deleted successfully!", "success");
     }
 
     return response.data;
