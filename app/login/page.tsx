@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
 
-  const { login,isLoading } = useAuth();
+  const { login } = useAuth();
   
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -30,7 +30,7 @@ export default function LoginPage() {
         setError("Invalid credentials"); // Fallback message
       }
     } finally {
-      setLoading(isLoading);
+      setLoading(false);
     }
   }
 
