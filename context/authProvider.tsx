@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import api, { setAuthToken } from "@/lib/axios";
-import { User } from '@/types/types';
+import { User } from "@/types/types";
 
 interface AuthContextType {
   user: User | null;
@@ -18,36 +18,33 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<string>('');
+  const [role, setRole] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const checkAuth = async () => {
-      const userData = sessionStorage.getItem("user");
-      if (userData) {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        setAuthToken(parsedUser.token);
-        setIsAuthenticated(true);
-        setRole(parsedUser.role || ''); 
-        try {
-          const response = await api.get("/api/user");
-          setUser(response.data.user);
-          setRole(response.data.role);
-        } catch (error) {
-          console.error("Token verification failed", error);
-          setAuthToken(null);
-          setUser(null);
-          setIsAuthenticated(false);
-          sessionStorage.removeItem("user");
-          router.push("/login");
-        }
-      } else {
-        setIsAuthenticated(false);
+      const storedUser = sessionStorage.getItem("user");
+      if (!storedUser) {
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+      
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setAuthToken(parsedUser.token);
+        const { data } = await api.get("/api/user");
+
+        setUser(data.user);
+        setRole(data.role);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error("Token verification failed", error);
+        logout();
+      } finally {
+        setLoading(false);
+      }
     };
 
     checkAuth();
@@ -55,13 +52,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await api.post("/api/login", { email, password });
-      const { accessToken, user, role } = response.data;
+      const { data } = await api.post("/api/login", { email, password });
+      const { accessToken, user, role } = data;
 
       setAuthToken(accessToken);
       setUser(user);
-      setIsAuthenticated(true);
       setRole(role);
+      setIsAuthenticated(true);
       sessionStorage.setItem("user", JSON.stringify({ accessToken, ...user, role }));
       router.push("/dashboard");
     } catch (error) {
@@ -72,8 +69,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = () => {
     setAuthToken(null);
     setUser(null);
+    setRole("");
     setIsAuthenticated(false);
-    setRole('');
     sessionStorage.removeItem("user");
     router.push("/login");
   };
@@ -85,6 +82,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useAuth = () => {
-  return useContext(AuthContext) as AuthContextType;
-};
+export const useAuth = () => useContext(AuthContext) as AuthContextType;
