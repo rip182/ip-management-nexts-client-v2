@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -81,7 +81,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               IP Management
             </Link>
 
-            {/* Fix: Use `userRole` to check permissions */}
             {userRole === "super-admin" && (
               <>
                 <Link
