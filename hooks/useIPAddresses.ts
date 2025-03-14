@@ -1,4 +1,3 @@
-// hooks/useIPAddresses.ts
 import { useState } from 'react'
 import useSWR from 'swr'
 import api from '@/lib/axios'

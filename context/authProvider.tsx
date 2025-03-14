@@ -25,17 +25,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const storedUser = sessionStorage.getItem("user");
-      if (!storedUser) {
-        setLoading(false);
-        return;
-      }
-      
       try {
-        const parsedUser = JSON.parse(storedUser);
-        setAuthToken(parsedUser.token);
         const { data } = await api.get("/api/user");
-
         setUser(data.user);
         setRole(data.role);
         setIsAuthenticated(true);
@@ -48,7 +39,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     checkAuth();
-  }, [router]);
+  }, []);
 
   const login = async (email: string, password: string) => {
     try {
@@ -59,7 +50,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(user);
       setRole(role);
       setIsAuthenticated(true);
-      sessionStorage.setItem("user", JSON.stringify({ accessToken, ...user, role }));
       router.push("/dashboard");
     } catch (error) {
       console.error("Login failed", error);
@@ -71,7 +61,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
     setRole("");
     setIsAuthenticated(false);
-    sessionStorage.removeItem("user");
     router.push("/login");
   };
 
