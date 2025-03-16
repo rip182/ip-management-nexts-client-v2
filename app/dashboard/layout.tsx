@@ -22,11 +22,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, logout, role, isAuthenticated, loading } = useAuth();
 
   useEffect(() => {
-    if (loading) return; 
+    if (loading || user === undefined) return;
+    if(isAuthenticated && role != 'super-admin') {
+      router.push('dashboard/ip-management')
+    }
     if (!isAuthenticated) {
       router.push("/login");
     }
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, loading, router,user]);
 
   if (loading) {
     return (
@@ -56,6 +59,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <nav className="p-4 space-y-1">
+          {userRole === "super-admin" && (
             <Link
               href="/dashboard"
               className={`flex items-center p-2 rounded-md ${
@@ -67,7 +71,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <LayoutDashboard size={20} className="mr-3" />
               Dashboard
             </Link>
-
+          )}
             <Link
               href="/dashboard/ip-management"
               className={`flex items-center p-2 rounded-md ${
@@ -94,31 +98,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   Audit Logs
                 </Link>
 
-                <Link
-                  href="/dashboard/users"
-                  className={`flex items-center p-2 rounded-md ${
-                    isActive("/dashboard/users")
-                      ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  }`}
-                >
-                  <Users size={20} className="mr-3" />
-                  User Management
-                </Link>
               </>
             )}
-
-            <Link
-              href="/dashboard/settings"
-              className={`flex items-center p-2 rounded-md ${
-                isActive("/dashboard/settings")
-                  ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              }`}
-            >
-              <Settings size={20} className="mr-3" />
-              Settings
-            </Link>
           </nav>
 
           <div className="absolute bottom-0 w-full p-4 border-t border-gray-200 dark:border-gray-700">

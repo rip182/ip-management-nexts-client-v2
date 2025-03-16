@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       setAuthToken(accessToken);
       await mutate();
-      router.push("/dashboard");
+
     } catch (error) {
       console.error("Login failed", error);
     }
