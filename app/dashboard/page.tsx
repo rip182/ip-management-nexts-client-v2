@@ -2,10 +2,51 @@
 
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { useState } from "react"
+import useSWR from "swr"
+import api from "@/lib/axios"
+import { AuditLog } from "@/types/types"
+import { useAuth } from "@/context/authProvider"
+
+export type PaginatedResponse<T> = {
+  data: T[];
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  first_page_url: string;
+  last_page_url: string;
+  next_page_url: string | null;
+  prev_page_url: string | null;
+  path: string;
+  from: number;
+  to: number;
+  links: { url: string | null; label: string; active: boolean }[];
+};
+
+const auditFetcher = (url: string) =>
+  api.get<PaginatedResponse<AuditLog>>(url).then((res) => res.data);
 
 export default function Dashboard() {
+  const [page] = useState(1); // Using fixed page 1 for recent activity
 
+  const { role, isAuthenticated } = useAuth()
+  const shouldFetch = isAuthenticated && role === "super-admin"
+  const { data, error, isLoading } = useSWR(
+    shouldFetch ? `/api/audit?page=${page}` : null,
+    auditFetcher
+  );
 
+  // Function to format timestamp to readable date
+  const formatDate = (timestamp: string) => {
+    return new Date(timestamp).toLocaleString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   return (
     <div>
@@ -91,36 +132,42 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">Added IP</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  admin@example.com
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">192.168.1.1</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  2023-03-05 14:30
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">Modified Label</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  user@example.com
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">10.0.0.1</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  2023-03-04 09:15
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">Deleted IP</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  admin@example.com
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">172.16.0.1</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  2023-03-03 16:45
-                </td>
-              </tr>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                    Loading...
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-4 text-center text-sm text-red-500">
+                    Error loading recent activity
+                  </td>
+                </tr>
+              ) : !data?.data.length ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                    No recent activity
+                  </td>
+                </tr>
+              ) : (
+                data.data.slice(0, 3).map((log) => (
+                  <tr key={log.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                      {log.event}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      {log.user?.name || log.user?.email || 'Unknown'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      {log.url || '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      {formatDate(log.created_at)}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -128,4 +175,3 @@ export default function Dashboard() {
     </div>
   )
 }
-

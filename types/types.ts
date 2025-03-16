@@ -62,8 +62,8 @@ export interface RequestOptions<T> {
     event: string;
     auditable_type: string;
     auditable_id: number;
-    old_values: Record<string, any> | null;
-    new_values: Record<string, any> | null;
+    old_values: Record<string, unknown> | null;
+    new_values: Record<string, unknown> | null;
     url: string;
     ip_address: string;
     user_agent: string;
