@@ -5,39 +5,32 @@ import { ArrowRight } from "lucide-react"
 import { useState } from "react"
 import useSWR from "swr"
 import api from "@/lib/axios"
-import { AuditLog } from "@/types/types"
-import { useAuth } from "@/context/authProvider"
-
-export type PaginatedResponse<T> = {
-  data: T[];
-  current_page: number;
-  last_page: number;
-  per_page: number;
-  total: number;
-  first_page_url: string;
-  last_page_url: string;
-  next_page_url: string | null;
-  prev_page_url: string | null;
-  path: string;
-  from: number;
-  to: number;
-  links: { url: string | null; label: string; active: boolean }[];
-};
-
-const auditFetcher = (url: string) =>
-  api.get<PaginatedResponse<AuditLog>>(url).then((res) => res.data);
+import { AuditLog,PaginatedResponse } from "@/types/types"
+import { useAuth, } from "@/context/authProvider"
 
 export default function Dashboard() {
-  const [page] = useState(1); // Using fixed page 1 for recent activity
+  const [page] = useState(1); 
 
   const { role, isAuthenticated } = useAuth()
+  
+  const auditFetcher = (url: string) =>
+    api.get<PaginatedResponse<AuditLog>>(url).then((res) => res.data);
+  
+
   const shouldFetch = isAuthenticated && role === "super-admin"
   const { data, error, isLoading } = useSWR(
     shouldFetch ? `/api/audit?page=${page}` : null,
     auditFetcher
   );
 
-  // Function to format timestamp to readable date
+  const statsUrl = "/api/stats"
+  const fetchStats = async (url: string) => {
+    const response = await api.get(url);
+    return response.data;
+  };
+
+  const { data: stats } = useSWR(statsUrl, fetchStats);
+
   const formatDate = (timestamp: string) => {
     return new Date(timestamp).toLocaleString('en-US', {
       year: 'numeric',
@@ -52,7 +45,7 @@ export default function Dashboard() {
     <div>
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
         <div className="card">
           <h2 className="text-xl font-semibold mb-2">IP Management</h2>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
@@ -80,32 +73,23 @@ export default function Dashboard() {
             <ArrowRight size={16} className="ml-1" />
           </Link>
         </div>
-
-        <div className="card">
-          <h2 className="text-xl font-semibold mb-2">User Management</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">Manage users and their permissions within the system.</p>
-          <Link href="/dashboard/users" className="flex items-center text-blue-500 hover:text-blue-600 font-medium">
-            Manage Users
-            <ArrowRight size={16} className="ml-1" />
-          </Link>
-        </div>
       </div>
 
       <div className="mt-8">
         <h2 className="text-xl font-semibold mb-4">Quick Stats</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <div className="text-3xl font-bold text-blue-500">127</div>
+            <div className="text-3xl font-bold text-blue-500">{stats?.totalIp}</div>
             <div className="text-gray-600 dark:text-gray-400">Total IP Addresses</div>
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <div className="text-3xl font-bold text-green-500">24</div>
+            <div className="text-3xl font-bold text-green-500">{stats?.ipsAddedThisMonth}</div>
             <div className="text-gray-600 dark:text-gray-400">Added This Month</div>
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <div className="text-3xl font-bold text-purple-500">8</div>
+          <div className="text-3xl font-bold text-purple-500">{stats?.activeUsers}</div>
             <div className="text-gray-600 dark:text-gray-400">Active Users</div>
           </div>
         </div>
