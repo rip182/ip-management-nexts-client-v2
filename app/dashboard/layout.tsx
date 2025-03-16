@@ -7,8 +7,6 @@ import {
   LayoutDashboard,
   Network,
   ClipboardList,
-  Users,
-  Settings,
   LogOut,
 
 } from "lucide-react";
