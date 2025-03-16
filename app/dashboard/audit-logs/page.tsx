@@ -36,13 +36,8 @@ export default function AuditLogsPage() {
   const [page, setPage] = useState(1);
   const { data, error, isLoading } = useSWR(`/api/audit?page=${page}`, auditFetcher);
 
-
-  
-
-
   useEffect(() => {
     if(error) route.push('/dashboard')
-    console.log(error)
     if (!data?.data) {
       setFilteredLogs([]);
       return;

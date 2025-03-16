@@ -103,7 +103,6 @@ export const request = async <R>({
 
     return response.data;
   } catch (error) {
-    console.log(error);
     throw error; 
   }
 };

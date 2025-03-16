@@ -69,7 +69,6 @@ export default function IPManagement() {
   }
   
   const handleSubmit = async (newIP: IPAddress) => {
-    console.log('disableButton')
     setIsSubmitting(true); 
   
     try {
@@ -87,7 +86,6 @@ export default function IPManagement() {
       console.error("Edit failed:", error);
      
     } finally {
-      console.log('enableButton')
       setIsSubmitting(false);
     }
   };
