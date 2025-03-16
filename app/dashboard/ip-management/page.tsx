@@ -1,46 +1,28 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Plus,Info } from "lucide-react"
-import { SearchBar } from "./components/SearchBar"
 import IPTable  from "./components/IPTable"
 import { IPFormModal } from "./components/IPFormModal"
 import { DeleteConfirmationModal } from "./components/DeleteConfirmationModal"
-import IPFilter from "./components/IPFilter"
 import useSWR from "swr"
 import api,{request} from "@/lib/axios"
-import type { IPAddress } from '@/types/types'
+import type { IPAddress, PaginatedResponse } from '@/types/types'
 import { useAuth } from "@/context/authProvider";;
 import "toastify-js/src/toastify.css"; 
 
 
 
 export default function IPManagement() {
-  const [IpAddresses, setIpAddresses] = useState<IPAddress[]>([])
-  const [filteredIPs, setFilteredIPs] = useState<IPAddress[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [currentIP, setCurrentIP] = useState<IPAddress | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false)
   
-  const IPAddressUrl = '/api/internet-protocol-address'
-  const IpFetcher = (url: string) => api.get<IPAddress[]>(url).then((res) => res.data)
-  const { data, isLoading,mutate } = useSWR(IPAddressUrl, IpFetcher)
+  const [page, setPage] = useState(1);
+  const IPAddressUrl = `/api/internet-protocol-address?=${page}`
+  const IpFetcher = (url: string) => api.get<PaginatedResponse<IPAddress>>(url).then((res) => res.data)
   const { user,role} = useAuth();
-  // useEffect(() => {
-  //   if (searchTerm) {
-  //     const filtered = data.filter(
-  //       (ip) =>
-  //         ip.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //         ip.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //         (ip.comment && ip.comment.toLowerCase().includes(searchTerm.toLowerCase()))
-  //     )
-  //     setFilteredIPs(filtered)
-  //   } else {
-  //     setFilteredIPs(data)
-  //   }
-  // }, [searchTerm, data])
+  const { data, isLoading,mutate } = useSWR(IPAddressUrl, IpFetcher)
 
 
   const handleOpenModal = (IpDetailsData?: IPAddress):void => {
@@ -70,8 +52,7 @@ export default function IPManagement() {
   
   const handleSubmit = async (newIP: IPAddress) => {
     console.log('disableButton')
-    setIsSubmitting(true); 
-  
+
     try {
       const method = newIP.id ? "PUT" : "POST";
       const endpoint = newIP.id ? `${IPAddressUrl}/${newIP.id}` : `${IPAddressUrl}`;
@@ -88,7 +69,6 @@ export default function IPManagement() {
      
     } finally {
       console.log('enableButton')
-      setIsSubmitting(false);
     }
   };
 
@@ -109,7 +89,6 @@ export default function IPManagement() {
      
     } finally {
       console.log('enableButton')
-      setIsSubmitting(false);
     }
     handleCloseDeleteModal()
   }
@@ -145,22 +124,23 @@ export default function IPManagement() {
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
-          <div className="md:w-48">
-            <button className="btn btn-secondary w-full flex items-center justify-center">
-              {/* <IPFilter onFilterApply={setFilteredIPs} /> */}
-              Filter
-            </button>
-          </div>
-        </div>
-        <IPTable
-          ips={data ?? []}
+        { data && (
+          <IPTable
+          ips={data?.data ?? []}
           onEdit={handleOpenModal}
           onDelete={handleOpenDeleteModal}
           canModify={canModify}
           canDelete={canDelete}
-        />
+          currentPage={data?.current_page}
+          lastPage={data.last_page}
+          prevPageUrl={data.prev_page_url}
+          nextPageUrl={data.next_page_url}
+          onPrevPage={() => setPage((prev) => Math.max(prev - 1, 1))}
+            onNextPage={() =>
+              setPage((prev) => (data && data.current_page < data.last_page ? prev + 1 : prev))
+            }
+            />
+        )}
       </div>
 
       <IPFormModal
@@ -168,8 +148,6 @@ export default function IPManagement() {
         onClose={handleCloseModal}
         onSave={handleSubmit}
         ip={currentIP}
-        // isSubmitting={isSubmitting}
-        // user={user}
       />
 
       <DeleteConfirmationModal

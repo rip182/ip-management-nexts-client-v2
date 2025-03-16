@@ -62,8 +62,8 @@ export interface RequestOptions<T> {
     event: string;
     auditable_type: string;
     auditable_id: number;
-    old_values: Record<string, any> | null;
-    new_values: Record<string, any> | null;
+    old_values: Record<string, unknown> | null;
+    new_values: Record<string, unknown> | null;
     url: string;
     ip_address: string;
     user_agent: string;
@@ -71,4 +71,20 @@ export interface RequestOptions<T> {
     created_at: string;
     updated_at: string;
     user: User;
+  };
+
+  export type PaginatedResponse<T> = {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    first_page_url: string;
+    last_page_url: string;
+    next_page_url: string | null;
+    prev_page_url: string | null;
+    path: string;
+    from: number;
+    to: number;
+    links: { url: string | null; label: string; active: boolean }[];
   };
