@@ -47,12 +47,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const { data } = await api.post("/api/login", { email, password });
       const { accessToken } = data;
-
+  
       setAuthToken(accessToken);
       await mutate();
-
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Login failed", error);
+      throw new Error("Invalid username or password");
     }
   };
 
