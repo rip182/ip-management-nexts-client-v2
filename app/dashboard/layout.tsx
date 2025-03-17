@@ -17,19 +17,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const router = useRouter();
   const pathname = usePathname();
-  const { user, logout, role, isAuthenticated, loading } = useAuth();
+  const { user, logout, role, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    if (loading || user === undefined) return;
+    if (isLoading || user === undefined) return;
     if(isAuthenticated && role != 'super-admin') {
       router.push('dashboard/ip-management')
     }
     if (!isAuthenticated) {
       router.push("/login");
     }
-  }, [isAuthenticated, loading, router,user]);
+  }, [isAuthenticated, isLoading, router,user,role]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
