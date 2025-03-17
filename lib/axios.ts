@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios ,{AxiosResponse} from "axios";
 import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
 
@@ -38,7 +38,7 @@ api.interceptors.response.use(
     if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const res = await axios.get(`/api/auth/refresh-token`);
+        const res:AxiosResponse<{ accessToken: string }> = await axios.get(`/api/auth/refresh-token`);
         const newAccessToken = res.data.accessToken;
         setAuthToken(newAccessToken);
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -84,7 +84,7 @@ export const request = async <R>({
   params?: unknown;
 }): Promise<R> => {
   try {
-    const response = await api.request<R>({
+    const response:AxiosResponse<R> = await api.request<R>({
       url: endpoint,
       method,
       data,
