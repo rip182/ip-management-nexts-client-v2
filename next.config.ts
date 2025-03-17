@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/:path*',
-        destination: 'http://ip-management.test/:path*'
+        destination: process.env.NEXT_PUBLIC_BACKEND_BASE_URL+':path*'
       },
     ];
   },

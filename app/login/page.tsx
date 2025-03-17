@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from "react"
 import Link from "next/link"
-import Image from "next/image"
 
 import { useAuth } from "@/context/authProvider";
 
@@ -23,12 +22,8 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-    } catch (err:unknown) {
-      if (err instanceof Error) {
-        setError(err.message); // Use the actual error message
-      } else {
-        setError("Invalid credentials"); // Fallback message
-      }
+    } catch {
+      setError("Invalid username or password");
     } finally {
       setLoading(false);
     }
@@ -38,13 +33,6 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <Image
-            src="/placeholder.svg?height=40&width=40"
-            alt="Logo"
-            width={40}
-            height={40}
-            className="mx-auto"
-          />
           <h1 className="mt-4 text-3xl font-bold text-gray-900 dark:text-gray-100">
             Welcome back
           </h1>
