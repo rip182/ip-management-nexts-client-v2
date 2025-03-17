@@ -6,7 +6,7 @@ type IPTableProps = {
   onEdit: (ip: IPAddress) => void
   onDelete: (ip: IPAddress) => void
   canModify: (ip: IPAddress) => boolean
-  canDelete: (ip: IPAddress) => boolean
+  canDelete: () => boolean
   currentPage:number
   lastPage:number
   prevPageUrl:string|null
@@ -89,13 +89,13 @@ export default function  IPTable({
                     </button>
                     <button
                       onClick={() => onDelete(ip)}
-                      disabled={!canDelete(ip)}
+                      disabled={!canDelete()}
                       className={`p-1.5 rounded-md ${
-                        canDelete(ip)
+                        canDelete()
                           ? "text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/20"
                           : "text-gray-400 cursor-not-allowed"
                       }`}
-                      title={canDelete(ip) ? "Delete" : "Only super-admins can delete IPs"}
+                      title={canDelete() ? "Delete" : "Only super-admins can delete IPs"}
                     >
                       <Trash2 size={16} />
                     </button>

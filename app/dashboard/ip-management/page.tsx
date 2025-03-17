@@ -51,10 +51,10 @@ export default function IPManagement() {
   }
   
   const handleSubmit = async (newIP: IPAddress) => {
-
+    const  AddressUrl = '/api/internet-protocol-address'
     try {
       const method = newIP.id ? "PUT" : "POST";
-      const endpoint = newIP.id ? `${IPAddressUrl}/${newIP.id}` : `${IPAddressUrl}`;
+      const endpoint = newIP.id ? `${AddressUrl}/${newIP.id}` : `${AddressUrl}`;
       const data = newIP;
   
       const response = await request({ endpoint, method, data });
@@ -68,9 +68,10 @@ export default function IPManagement() {
   }};
 
   const handleDeleteIP = async (id: string) => {
+    const  AddressUrl = '/api/internet-protocol-address'
     try {
       const method = 'DELETE'
-      const endpoint =`${IPAddressUrl}/`+id
+      const endpoint =`${AddressUrl}/`+id
       const data = id;
 
     const response = await request({ endpoint, method, data });
@@ -96,7 +97,7 @@ export default function IPManagement() {
     return ip.user_id === user?.id
   }
 
-  const canDelete = (ip: IPAddress): boolean => {
+  const canDelete = (): boolean => {
     return role === "super-admin"
   }
 

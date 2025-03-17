@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Search, Calendar, Download, X, Info } from "lucide-react";
 import useSWR from "swr";
 import api from "@/lib/axios";
-import { User, AuditLog } from "@/types/types";
+import { AuditLog } from "@/types/types";
 import Table from "./components/table";
 import { useRouter } from "next/navigation";
 
@@ -32,7 +32,7 @@ export default function AuditLogsPage() {
   const [filteredLogs, setFilteredLogs] = useState<AuditLog[] | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
-  const [user, setUser] = useState<User | null>(null);
+
   const [page, setPage] = useState(1);
   const { data, error, isLoading } = useSWR(`/api/audit?page=${page}`, auditFetcher);
 
@@ -64,7 +64,7 @@ export default function AuditLogsPage() {
     }
 
     setFilteredLogs(logs);
-  }, [data, searchTerm, actionFilter,error]);
+  }, [data, searchTerm, actionFilter,error,route]);
 
   const handleExportLogs = () => {
     alert("Exporting logs is not implemented in this demo");
