@@ -68,6 +68,15 @@ export function IPFormModal({ isOpen, onClose, onSave, ip, }: IPFormModalProps) 
         ip_address: formData.address,
         label: formData.label,
         comment: formData.comment,
+        user: {
+          id: 0,
+          name: "",
+          email: "",
+          email_verified_at: null,
+          created_at: "",
+          updated_at: ""
+        },
+        user_id: 0
       };
       await onSave(newIP);
       onClose();
@@ -86,7 +95,6 @@ export function IPFormModal({ isOpen, onClose, onSave, ip, }: IPFormModalProps) 
       <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
         <div className="fixed inset-0 bg-gray-500 dark:bg-gray-900 opacity-75 transition-opacity" aria-hidden="true" />
         <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
-          ​
         </span>
         <div className="inline-block w-full transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left align-bottom shadow-xl transition-all sm:my-8 sm:max-w-lg sm:align-middle">
           <form onSubmit={handleSubmit}>
