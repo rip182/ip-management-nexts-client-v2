@@ -9,7 +9,7 @@ Create a `.env.local` file in the root directory of your project.
 ## 2. Set the Backend Base URL
 
 Inside the `.env.local` file, add the following variable and set it to your backend base URL:
-
+Example.
 ```env
 NEXT_PUBLIC_BACKEND_BASE_URL=http://laravel-api.test
 ```
@@ -29,11 +29,10 @@ Run one of the following commands to start the development server:
 ```bash
 npm run dev
 # or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+#Production
+npm run build
+npm run start
+ 
 ```
 
 ## 5. Open in Browser
