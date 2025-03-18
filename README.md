@@ -26,14 +26,15 @@ npm install
 
 Run one of the following commands to start the development server:
 
+# Developement
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+
+# Production
+```bash
+npm run build
+npm run start
 ```
 
 ## 5. Open in Browser
